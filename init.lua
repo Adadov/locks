@@ -388,18 +388,25 @@ function locks:lock_handle_input( pos, formname, fields, player )
 
 
    if( fields.locks_sent_lock_command == "/list" ) then
+	   if(meta:get_string("allowed_users") == nil) then
+		   meta:set_string("allowed_users", "")
+	   end
+	   if(meta:get_string("allowed_users"):find(',') == 1) then
+                   meta:set_string("allowed_users", meta:get_string("allowed_users"):gsub(",","",1))
+           end
 
       if( meta:get_string("allowed_users")=="" ) then
          txt = "No other users are allowed to use this object (except those with global privs like moderators/admins).";
       else
          txt = "You granted the following users/groups of users access to this object:\n";
          local liste = meta:get_string("allowed_users"):split( "," );
+	 print(dump2(liste))
          for i in ipairs( liste ) do
             txt = txt.."   "..tostring(liste[i]);
          end
       end
 
-      if( meta:get_string( "password" ) == "" ) then
+      if( meta:get_string("password") == "" ) then
          txt = txt.."\nThere is no password set. That means no one can get access through a password.";  
       else
          txt = txt.."\nThe password for this lock is: \""..tostring( meta:get_string( "password" ).."\"");
@@ -530,8 +537,12 @@ function locks:lock_handle_input( pos, formname, fields, player )
             return;
          end
       end
-        
-      meta:set_string( "allowed_users", meta:get_string("allowed_users")..","..help[2] );
+      
+      if ( meta:get_string("allowed_users") == "" or meta:get_string("allowed_users") == nil ) then
+	      meta:set_string("allowed_users", help[2])
+      else
+              meta:set_string("allowed_users", meta:get_string("allowed_users")..","..help[2] )
+      end
 
       if( help[2]:sub(1,1) == ":" ) then
          minetest.chat_send_player(name, "All members of your playergroup "..tostring(help[2]:sub(2)).." may now use/access this locked object.");
@@ -544,8 +555,20 @@ function locks:lock_handle_input( pos, formname, fields, player )
 
    if( help[1]=="/del" ) then
 
-      userlist  = meta:get_string("allowed_users"):split( ","..help[2] );
-      meta:set_string( "allowed_users", ( userlist[1] or "" )..(userlist[2] or "" ));
+      userlist  = meta:get_string("allowed_users"):split( ",");
+      local founded = false
+      local newlist = {}
+      for _,v in pairs(userlist) do
+	  if v == help[2] then
+              founded = true
+	  else
+	      table.insert(newlist, v)
+	  end
+      end
+      if founded then
+          meta:set_string( "allowed_users", locks:join(newlist))
+	  print("[LOCKS] User removed: "..help[2].."\n New list: "..dump(newlist))
+      end
       
       minetest.chat_send_player(name, "Access for player \""..tostring(help[2]).."\" has been revoked.");
       return;
@@ -554,6 +577,17 @@ function locks:lock_handle_input( pos, formname, fields, player )
    minetest.chat_send_player(name, "Error: Command \""..tostring(help[1]).."\" not understood.");
 end
 
+function locks:join(list)
+	local ret = ""
+	for _,v in pairs(list) do
+		if ret == "" then
+			ret = v
+		else
+			ret = ret..","..v
+		end
+	end
+	return ret
+end
 
 
 -- craftitem; that can be used to craft shared locked objects
