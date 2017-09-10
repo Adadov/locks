@@ -34,7 +34,6 @@ if( locks.pipeworks_enabled ) then
 	};
 end
 
-
 minetest.register_node("locks:shared_locked_chest", {
        description = "Shared locked chest",
 	tiles      = locks.chest_add.tiles,
@@ -52,9 +51,14 @@ minetest.register_node("locks:shared_locked_chest", {
 --                                "button_exit[3,0.8;2,1.0;locks_sent_input;Proceed]"..
                                 "list[current_name;main;0,0;8,4;]"..
                                 "list[current_player;main;0,5;8,4;]"..
+                                "listring[current_name;main]"..
+                                "listring[current_player;main]"..
                                 "field[0.3,9.6;6,0.7;locks_sent_lock_command;Locked chest. Type /help for help:;]"..
-								"background[-0.5,-0.65;9,11.2;bg_shared_locked_chest.jpg]"..
-                                "button_exit[6.3,9.2;1.7,0.7;locks_sent_input;Proceed]" );
+				default.gui_bg..
+				default.gui_bg_img..
+                                default.gui_slots..
+--                                "background[-0.5,-0.65;9,11.2;gui_formbg.png;true]"..
+                                "button_exit[6.3,9.2;1.7,0.7;locks_sent_input;Proceed]");
 --                                "size[8,9]"..
 --                                "list[current_name;main;0,0;8,4;]"..
 --                                "list[current_player;main;0,5;8,4;]");
